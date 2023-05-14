@@ -35,7 +35,7 @@ let UserSchema = mongoose.Schema({
     default: "user",
   },
 });
-UserSchema.pre("save", async function () {
+UserSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, saltrounds);
   next();
 });

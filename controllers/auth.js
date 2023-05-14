@@ -1,38 +1,42 @@
 const User = require("../model/User");
+const bcrypt = require("bcrypt")
 const { StatusCodes } = require("http-status-codes");
 const CustomError = require("../errors");
 const {
   attachCookiesToResponse,
-  createTokenUser,
+  createJWT,
+  verifyToken,
   SendMail,
-  IsTokenValid,
-} = require("../utils");
+} = require("../utilities");
 
 const register = async (req, res) => {
-  const { email, name, password } = req.body;
-
-  const emailAlreadyExists = await User.findOne({ email });
+  
+  const emailAlreadyExists = await User.findOne({ email: req.body.email });
   if (emailAlreadyExists) {
     throw new CustomError.BadRequestError("Email already exists");
   }
-  const user = await User.create({ name, email, password });
+  const user = new User(req.body);
 
-  let activationLink = `http://localhost:3000/activateUser/${userActivationToken}`;
-  let receiver = req.body.email;
-  let subject = "Email Activation :D";
-  let text =
+  const tokenUser =  createJWT(user.id);
+
+  await user.save()
+
+  var activationLink = `http://localhost:3000/activateUser/${tokenUser}`;
+  var reciever = req.body.email;
+  var subject = "Email Activation :D";
+  var text =
     "You have created, Please click this link to activate your account";
-  let html = `<a> ${activationLink} </a>`;
-  await SendMail(receiver, subject, text, html);
-  const tokenUser = createTokenUser(user);
+  var html = `<a> ${activationLink} </a>`;
+  await SendMail(reciever, subject, text, html);
+
   attachCookiesToResponse({ res, user: tokenUser });
   res.status(StatusCodes.CREATED).json({ user: tokenUser });
 };
 
 let activateUser = async (req, res) => {
   let token = req.params.token;
-  const { name, userId, role } = IsTokenValid(token);
-
+  const  userId  = verifyToken(token);
+  console.log(userId);
   if (userId) {
     await User.findByIdAndUpdate(userId, { isActive: true });
     res.status(200).json({ message: "successfully Activated your Account" });
@@ -52,20 +56,26 @@ const login = async (req, res) => {
   if (!user) {
     throw new CustomError.UnauthenticatedError("Invalid Credentials");
   }
-  const isPasswordCorrect = await user.comparePassword(password);
+  const isPasswordCorrect = await bcrypt.compare(password, user.password)
   if (!isPasswordCorrect) {
     throw new CustomError.UnauthenticatedError("Invalid Credentials");
   }
-  const tokenUser = createTokenUser(user);
-  attachCookiesToResponse({ res, user: tokenUser });
+  req.session.cookie.expires = new Date(Date.now() + day);
+  req.session.cookie.maxAge = day
+  req.session.user = user;
+  await req.session.save();
 
-  res.status(StatusCodes.OK).json({ user: tokenUser });
+  attachCookiesToResponse( res, user.id  );
+
+  res.status(StatusCodes.OK).json({ user: user });
 };
 const logout = async (req, res) => {
-  res.cookie("token", "logout", {
-    httpOnly: true,
-    expires: new Date(Date.now() + 1000),
-  });
+  req.session.destroy(()=>{
+    res.clearCookie("token",{
+      sameSite:"none",
+      secure:true
+     })
+  })
   res.status(StatusCodes.OK).json({ msg: "user logged out!" });
 };
 
