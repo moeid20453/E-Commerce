@@ -29,11 +29,27 @@ let UserSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  address:{
+    type: Object
+  },
+  billadress:{
+    type: String
+  },
   role: {
     type: String,
     enum: ["admin", "user"],
     default: "user",
   },
+  userReviews: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Review',
+    required: true,
+  },
+  userWishlist: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Review',
+    required: true,
+  }
 });
 UserSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, saltrounds);
