@@ -31,7 +31,7 @@ exports.isExist = async (filter)=>{
   }
 }
 }
-exports.get = async (filter)=>{
+exports.get = async (id)=>{
   try {
     if(filter){
       let record = await User.findOne(filter).select("-password");

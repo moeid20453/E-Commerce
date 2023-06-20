@@ -21,7 +21,7 @@ const s3 = new S3Client({
   },
 });
 
-exports.createProduct = async (filter) => {
+exports.create = async (filter) => {
   try{
   req.body.image = req.file.originalname;
   const params = {
@@ -35,6 +35,12 @@ exports.createProduct = async (filter) => {
   const product = await new Product(req.body);
   product.save();
   res.status(StatusCodes.CREATED).json({ product });
+  return{
+    success: true,
+    code: 200,
+    data: product,
+    
+  }
 }catch(err){
   console.log("Error", err.message);
     return{
@@ -45,7 +51,7 @@ exports.createProduct = async (filter) => {
 }
 };
 
-exports.getAllProducts = async (filter) => {
+exports.getAll = async (filter) => {
   try{
   const products = await Product.find({});
   let product = [];
@@ -61,7 +67,14 @@ exports.getAllProducts = async (filter) => {
     midproduct.image = imageUrl;
     product[i] = midproduct;
   }
+ 
   res.status(StatusCodes.OK).json({ product, count: products.length });
+  return{
+    success: true,
+    code: 200,
+    data: product,
+    
+  }
 }catch(err){
   console.log("Error", err.message);
     return{
@@ -71,10 +84,9 @@ exports.getAllProducts = async (filter) => {
     }
 } 
 };
-exports.getSingleProduct = async (filter) => {
+exports.getSingleProduct = async (id) => {
   try{
-  const productId = req.params.id;
-  const product = await Product.findById({ _id: productId });
+  const product = await Product.findById({ _id: id });
   console.log(product);
   if (!product) {
     throw new CustomError.NotFoundError(`No product with id : ${productId}`);
@@ -88,6 +100,12 @@ exports.getSingleProduct = async (filter) => {
   const imageUrl = url;
   product.image = imageUrl;
   res.status(StatusCodes.OK).json(product);
+  return{
+    success: true,
+    code: 200,
+    data: product,
+    
+  }
 }catch(err){
   console.log("Error", err.message);
     return{
@@ -98,17 +116,26 @@ exports.getSingleProduct = async (filter) => {
 }
 };
 
-exports.updateProduct = async (filter) => {
+exports.update = async (id, data) => {
  try{ 
-  const { id: productId } = req.params;
-  const product = await Product.findOneAndUpdate({ _id: productId }, req.body, {
+
+  const product = await Product.findOneAndUpdate({ _id: id }, data.product, {
     new: true,
     runValidators: true,
   });
   if (!product) {
-    throw new CustomError.NotFoundError(`No product with id : ${productId}`);
+    return{
+      success: false,
+      code: 500,
+      error: `No product with id : ${productId}`
+    }
   }
-  res.status(StatusCodes.OK).json({ product });
+  else{return{
+    success: true,
+    code: 200,
+    data: product,
+    
+  }}
  }catch(err){
   console.log("Error", err.message);
     return{
@@ -119,14 +146,16 @@ exports.updateProduct = async (filter) => {
 }
 };
 
-exports.deleteProduct = async (filter) => {
+exports.deleteProduct = async (id) => {
   try{
-  const { id: productId } = req.params;
-  const product = await Product.findOne({ _id: productId });
+  const product = await Product.findOne({ _id: id });
   if (!product) {
-    throw new CustomError.NotFoundError(`No product with id : ${productId}`);
+    return{
+      success: false,
+      code: 500,
+      error: `No product with id : ${productId}`
+    }
   }
-
   await product.remove();
 
   return{
@@ -144,7 +173,7 @@ exports.deleteProduct = async (filter) => {
 }
 };
 
-exports.countProduct = async (filter) => {
+exports.countAll = async (filter) => {
   try{
     let count = await Product.countDocuments()
     console.log(count);
