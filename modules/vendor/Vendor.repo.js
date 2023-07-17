@@ -1,27 +1,27 @@
-let Wish = require("./Wishlist.model")
+let Vend = require('./Vendor.model')
 
 exports.get = async (filter)=>{
   try {
-    const { userId } = filter;
-    const wishlistItems = await Wish.find({ userid: userId }).populate('productId');
+    const { VendorId } = filter;
+    const vendor = await Vend.find({ VendorId: VendorId });
     return{
       success: true,   
-      items: wishlistItems,
+      items: vendor,
      };
   } catch (error) {
     return{
         success: false, 
-        message: 'Failed to fetch wishlist items',     
+        message: 'Failed to fetch Vendor From database',     
   };
 }}
 
-exports.create = async (userId) =>{
+exports.create = async (form) =>{
   try{
-    const newList = new Wish({userid : userId });
-      await newList.save();
+    const vendor = new Vend(form);
+      await vendor.save();
       return{
         success: true,
-        record: newList,
+        record: vendor,
         code: 201,
       };
 
@@ -35,25 +35,25 @@ exports.create = async (userId) =>{
   }
 }
 
-exports.update = async (userId, productId) => {
+exports.update = async (VendorId, update) => {
   try{ 
-   const List = await Wish.findOneAndUpdate({ 
-    userid : userId ,
-    $push : {product: productId }, 
+   const vendor = await Vend.findOneAndUpdate({ 
+    VendorId : VendorId ,
+    update, 
     new: true,
     runValidators: true,
    });
-   if (!List) {
+   if (!vendor) {
      return{
        success: false,
        code: 500,
-       error: `No User with this ID`
+       error: `No Vendor with this ID`
      }
    }
    else{return{
      success: true,
      code: 200,
-     data: List,
+     data: vendor,
      
    }}
   }catch(err){
@@ -68,14 +68,14 @@ exports.update = async (userId, productId) => {
 
 exports.delete = async (id)=>{
   try {
-    await Wish.findByIdAndDelete(id);
+    await Vend.findByIdAndDelete(id);
     return{
       success: true,   
-      message: "Successfully deleted wishlisted item",
+      message: "Successfully deleted Vendor From databasae",
      };
   } catch (error) {
     return{
         success: false, 
-        error: 'Failed to Delete wishlisted item',     
+        error: 'Failed to Delete Vendor From databasae',     
   };
 }}

@@ -31,9 +31,9 @@ exports.isExist = async (filter)=>{
   }
 }
 }
-exports.get = async (id)=>{
+exports.get = async (filter)=>{
   try {
-    if(filter){
+    
       let record = await User.findOne(filter).select("-password");
       if(record){
         return{
@@ -49,14 +49,6 @@ exports.get = async (id)=>{
           error: "User not found"
         };
       }
-    }
-    else{
-      return{
-        success: false,
-        code: 404,
-        error: "User ID is required"
-      }
-    }
   }catch(err){
     return{
       success: false,
@@ -84,12 +76,12 @@ exports.list = async (filter) =>{
     }
   }
 }
-exports.create = async (form) =>{
+exports.create = async (filter) =>{
   try{
-    if(form.email) form.email = form.email.toLowerCase()
-    let user = await this.isExist({email: form.email})
+    if(filter.email) filter.email = filter.email.toLowerCase()
+    let user = await this.isExist({email: filter.email})
     if(!user.success){
-      const newUser = new User(form);
+      const newUser = new User(filter);
       await newUser.save();
       return{
         success: true,
@@ -130,7 +122,7 @@ exports.update = async (_id, form) =>{
         let userUpdate = await this.isExist({_id})
         return{
           success: true,
-          record: userUpdate.record,
+          record: userUpdate,
           code:201
         };
       }
@@ -152,22 +144,36 @@ exports.update = async (_id, form) =>{
   }
 }
 
-exports.remove = async (_id,role)=>{
+exports.remove = async (_id)=>{
   try{
-    const user = await this.isExist({_id, role:role});
+    const user = await this.isExist({_id});
     if(user.success){
+      if(user.record.role == "user"){
+
       await User.findByIdAndDelete({_id})
       await Cart.deleteMany({"user": _id})
       await Wishlist.deleteMany({"user": _id})
       let reviews =  await Review.list({"user": _id})
+
       await reviews.records.map((review)=>{
         Review.remove(review._id)
       })
+
       await Order.deleteMany({"user": _id})
+      
       return{
         success: true,
+        record: user,
         code:200
+      }}else{
+        await User.findByIdAndDelete({_id})
+        return{
+          success: true,
+          record: user,
+          code:200
+        }
       }
+      
     } else{
       return{
         success:false,

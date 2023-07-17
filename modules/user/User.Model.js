@@ -37,18 +37,16 @@ let UserSchema = mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["admin", "user"],
+    enum: ["admin", "user","superAdmin"],
     default: "user",
   },
   userReviews: {
     type: mongoose.Schema.ObjectId,
     ref: 'Review',
-    required: true,
   },
   userWishlist: {
     type: mongoose.Schema.ObjectId,
-    ref: 'Review',
-    required: true,
+    ref: 'Wishlist',
   }
 });
 UserSchema.pre("save", async function (next) {
@@ -61,3 +59,4 @@ UserSchema.post("save", async function () {
 let UserModel = mongoose.model("users", UserSchema);
 
 module.exports = UserModel;
+ 

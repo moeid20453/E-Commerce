@@ -1,12 +1,9 @@
 const Product = require('./Product.Model');
 const { StatusCodes } = require("http-status-codes");
-const CustomError = require("../../errors");
-const path = require("path");
-const { S3Client, Type } = require("@aws-sdk/client-s3");
+const { S3Client } = require("@aws-sdk/client-s3");
 const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const crypto = require("node:crypto");
-const { log } = require("console");
+
 
 const AccessKey = process.env.ACCESS_KEY;
 const SecretAccessKey = process.env.SECRET_ACCESS_KEY;
@@ -21,20 +18,21 @@ const s3 = new S3Client({
   },
 });
 
-exports.create = async (filter) => {
+exports.create = async (form) => {
   try{
-  req.body.image = req.file.originalname;
+    console.log(form.body);
+    console.log(form.file.buffer);
+  form.body.image = form.file.originalname;
   const params = {
     Bucket: BucketName,
-    Key: req.file.originalname,
-    Body: req.file.buffer,
-    ContentType: req.file.mimetype,
+    Key: form.body.image,
+    Body: form.file.buffer,
+    ContentType: form.file.mimetype,
   };
   const command = new PutObjectCommand(params);
   await s3.send(command);
-  const product = await new Product(req.body);
+  const product =  new Product(form.body);
   product.save();
-  res.status(StatusCodes.CREATED).json({ product });
   return{
     success: true,
     code: 200,
@@ -53,8 +51,8 @@ exports.create = async (filter) => {
 
 exports.getAll = async (filter) => {
   try{
-  const products = await Product.find({});
-  let product = [];
+  const allproducts = await Product.find({});
+  let products = [];
   for (let i = 0; i < products.length; i++) {
     let midproduct = products[i];
     const getObjectParams = {
@@ -67,12 +65,10 @@ exports.getAll = async (filter) => {
     midproduct.image = imageUrl;
     product[i] = midproduct;
   }
- 
-  res.status(StatusCodes.OK).json({ product, count: products.length });
   return{
     success: true,
     code: 200,
-    data: product,
+    record: products,
     
   }
 }catch(err){
@@ -89,7 +85,7 @@ exports.getSingleProduct = async (id) => {
   const product = await Product.findById({ _id: id });
   console.log(product);
   if (!product) {
-    throw new CustomError.NotFoundError(`No product with id : ${productId}`);
+    return({error:`No product with id : ${productId}`})
   }
   const getObjectParams = {
     Bucket: BucketName,
@@ -127,7 +123,7 @@ exports.update = async (id, data) => {
     return{
       success: false,
       code: 500,
-      error: `No product with id : ${productId}`
+      error: `No product with id : ${id}`
     }
   }
   else{return{

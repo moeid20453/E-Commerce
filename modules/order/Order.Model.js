@@ -14,6 +14,11 @@ const SingleOrderItemSchema = mongoose.Schema({
 
 const OrderSchema = mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     tax: {
       type: Number,
       required: true,
@@ -30,24 +35,11 @@ const OrderSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
-    orderItems: [SingleOrderItemSchema],
-    status: {
-      type: String,
-      enum: ['pending', 'failed', 'paid', 'delivered', 'canceled'],
-      default: 'pending',
-    },
-    user: {
+    orderItems: [{ 
       type: mongoose.Schema.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    clientSecret: {
-      type: String,
-      required: true,
-    },
-    paymentIntentId: {
-      type: String,
-    },
+      ref: 'Product'}],
+    
+    
   },
   { timestamps: true }
 );

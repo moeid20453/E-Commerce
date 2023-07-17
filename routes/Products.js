@@ -1,11 +1,11 @@
-const app =  require('express').Router();
-const auth = require("../middleware/authentication");
-const product = require('../modules/product/Product.repo')
-const upload = require("../middleware/upload")
+// const app =  require('express').Router();
+// const auth = require("../middleware/authentication");
+// const product = require('../modules/product/Product.repo')
+// const upload = require("../middleware/upload")
 // const { getSingleProductReviews } = require("../controllers/Review")
 
 //  app.get('/', product.getAllProducts);
- app.get('/CountProduct', product.countProduct);
+//  app.get('/CountProduct', product.countProduct);
 //  app.post('/createProduct', upload.single('image'), product.createProduct);
 
 // app.get('/:id',product.getSingleProduct)
@@ -14,4 +14,4 @@ const upload = require("../middleware/upload")
 
 //app.get('/:id/reviews', getSingleProductReviews)
 
-module.exports = app;
+// module.exports = app;
