@@ -83,7 +83,6 @@ exports.getAll = async (filter) => {
 exports.getSingleProduct = async (id) => {
   try{
   const product = await Product.findById({ _id: id });
-  console.log(product);
   if (!product) {
     return({error:`No product with id : ${productId}`})
   }
@@ -95,7 +94,6 @@ exports.getSingleProduct = async (id) => {
   const url = await getSignedUrl(s3, getcommand, { expiresIn: 3600 });
   const imageUrl = url;
   product.image = imageUrl;
-  res.status(StatusCodes.OK).json(product);
   return{
     success: true,
     code: 200,

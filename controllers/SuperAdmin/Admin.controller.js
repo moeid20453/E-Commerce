@@ -84,4 +84,10 @@ const User = require('../../modules/user/User.repo')
   }
 
 
-  
+  module.exports = {
+    getAllAdmins,
+    getAdminUser,
+    deleteAdminUser,
+    updateAdminUser,
+    createAdminUser
+  }

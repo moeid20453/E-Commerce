@@ -38,7 +38,7 @@ exports.create = async (userId, vendorId) =>{
 exports.deleteProduct = async (userId, productId) => {
   try{ 
    let cart = this.get(userId)
-    cart.product = cart.product.filter(product => product.id.toString() !== productId)
+    cart.product = cart.product.filter(product => product._id.toString() !== productId)
     let removed = cart.product.filter(product => product.id.toString() == productId)
     let newtotal  = cart.total - removed.price
    const List = await Cart.findOneAndUpdate({ 
@@ -71,14 +71,18 @@ exports.deleteProduct = async (userId, productId) => {
  }
  };
 
-exports.addProduct = async (userId, product) => {
+exports.addProduct = async (userId, product,quantity) => {
   try{ 
    let cart = this.get(userId)
-   let total = cart.total + product.price
+    // map to find if product exists  and removing vendors
+
+   let newItem = {product: product, quantity: quantity}
+   let newitemprice = product.price * quantity
+   let total = cart.total + newitemprice
    cart.total = total
    const List = await Cart.findOneAndUpdate({ 
     userid : userId ,
-    $push : {product: product},
+    $push : {orderItems: newItem},
     total: total, 
     new: true,
     runValidators: true,
@@ -105,6 +109,11 @@ exports.addProduct = async (userId, product) => {
      }
  }
  };
+
+ exports.changeQuantity = async()=>{
+
+ }
+
 
 exports.delete = async (userId)=>{
   try {

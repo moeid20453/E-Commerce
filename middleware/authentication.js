@@ -1,4 +1,4 @@
-const { isTokenValid } = require('../utilities');
+const { verifyToken } = require('../utilities');
 
 const authenticateUser = async (req, res, next) => {
   const token = req.signedCookies.token;

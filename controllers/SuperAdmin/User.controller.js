@@ -82,3 +82,12 @@ const Wish = require("../../modules/wishlist/Wishlist.repo")
       res.status(500).json({error: "Unexpected Error"})
     }
   }
+
+
+module.exports = {
+  getAllUsers,
+  getUser,
+  deleteUser,
+  updateUser,
+  createUser
+}

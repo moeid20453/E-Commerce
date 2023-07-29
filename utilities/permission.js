@@ -6,4 +6,5 @@ const checkPermissions = (requestUser, resourceUserId) => {
   else{return({error: "Unexpected Error"});}
 };
 
-module.exports = checkPermissions;
+module.exports = 
+{checkPermissions};
