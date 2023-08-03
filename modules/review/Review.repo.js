@@ -1,9 +1,34 @@
 let Reviews = require("./Review.Model")
 
+exports.isExists = async(userId, productId)=>{
+  try{
+
+    let alreadySubmitted =  await Reviews.findOne({
+      product: productId,
+      userId: userId,
+    });
+    if(alreadySubmitted){
+      return{
+        success: true
+      }
+    }
+    else{
+      return{
+        success: false
+      }
+    }
+  }catch{
+    return{
+      success: false, 
+      message: 'Failed to fetch Reviews',     
+};
+  }
+}
+
 
 exports.get = async (filter)=>{
   try {
-    const { userId, productId} = filter
+    const { userId, productId,reviewId} = filter
     if(userId){
       const UserReviews = await Reviews.find({ userid: userId });
       return{
@@ -16,6 +41,12 @@ exports.get = async (filter)=>{
         success: true,   
         items: ProductReviews,
        };
+    }if(reviewId){
+      const ProductReviews = await Reviews.find({ _id: reviewId });
+      return{
+        success: true,   
+        items: ProductReviews,
+       };
     }
   } catch (error) {
     return{
@@ -24,17 +55,24 @@ exports.get = async (filter)=>{
   };
 }}
 
-exports.create = async (userId , product ) =>{
+exports.create = async (filter ) =>{
   try{
     const { userId, productId , Rating, Title, Comment} = filter
-    const newList = new Reviews({userid : userId });
-      await newList.save();
+    const exists = await this.isExists(userId,productId)
+    if(exists.success == true ){
+      return{
+        success: false,
+        code: 500,
+        error: "User already has a review for this product"
+      }
+    }
+    const newreview = new Reviews({userid : userId , rating: Rating, title: Title, comment: Comment, product: productId});
+      await newreview.save();
       return{
         success: true,
-        record: newList,
+        record: newreview,
         code: 201,
       };
-
   }catch(err){
     console.log("error message", err.message);
     return{
@@ -73,14 +111,14 @@ exports.update = async (id,form) => {
 exports.delete = async (filter)=>{
   try {
     const { ReviewId } = filter;
-    await Reviews.findByIdAndDelete(ReviewId);
+    let review = await Reviews.findByIdAndDelete(ReviewId);
     return{
       success: true,   
-      items: wishlistItems,
+      data: review,
      };
   } catch (error) {
     return{
         success: false, 
-        message: 'Failed to Delete wishlisted item',     
+        error: 'Failed to Delete wishlisted item',     
   };
 }}

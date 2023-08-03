@@ -1,7 +1,6 @@
 const paypal = require('@paypal/checkout-server-sdk');
 const Orders = require("../../modules/order/Order.repo")
 const { CLIENT_ID, APP_SECRET } = process.env;
-const baseURL = "https://sandbox.paypal.com"
 
 let environment = new paypal.core.SandboxEnvironment(CLIENT_ID, APP_SECRET);
 let client = new paypal.core.PayPalHttpClient(environment)
