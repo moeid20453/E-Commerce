@@ -9,10 +9,6 @@ const SingleOrderItemSchema = mongoose.Schema({
     type: Number,
     default: 1,
     min: 1,
-  },
-  itemtotal: {
-    type: Number,
-    required: true
   }
 });
 

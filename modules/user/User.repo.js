@@ -3,7 +3,6 @@ let bcrypt = require('bcrypt')
 let fs = require('fs')
 const Order = require('../order/Order.Model')
 const Review = require("../review/Review.Model")
-const { log } = require("console")
 
 
 exports.isExist = async (filter)=>{

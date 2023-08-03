@@ -1,6 +1,7 @@
 const {
   register,
   login,
+  updateUser,
   logout,
   activateUser } = require('./Auth.controller')
 const {
@@ -13,6 +14,7 @@ const {createOrder} =require("./Order.controller")
 module.exports ={
   register,
   login,
+  updateUser,
   logout,
   activateUser,
   removeFromCart,

@@ -1,3 +1,4 @@
+const { remove } = require('../user/User.repo');
 let Cart = require('./Cart.model')
 
 exports.get = async (filter)=>{
@@ -6,7 +7,7 @@ exports.get = async (filter)=>{
     const UserCart = await Cart.find({ userid: userId });
     return{
       success: true,   
-      Cart: UserCart,
+      data: UserCart,
      };
   } catch (error) {
     return{
@@ -73,9 +74,41 @@ exports.deleteProduct = async (userId, productId) => {
 
 exports.addProduct = async (userId, product,quantity) => {
   try{ 
-   let cart = this.get(userId)
-    // map to find if product exists  and removing vendors
+   let cart = await this.get(userId)
+   let products = cart.data.orderItems
 
+   const exists = products.map(item => item._id === product._id);
+
+   if(exists == true ){
+    const addedToExists = products.map(item => {
+      if(item => item._id === product._id){
+        let num = item.quantity + quantity
+        return{ quantity : num }
+      }
+      return item
+    }); 
+    cart.data.orderItems = addedToExists
+    let newitemprice = product.price * quantity
+   let total = cart.total + newitemprice
+   const List = await Cart.findOneAndUpdate({ 
+    userid : userId ,
+    orderItems : addedToExists,
+    total: total, 
+    new: true,
+    runValidators: true,
+   });
+   if (!List) {
+    return{
+      success: false,
+      code: 500,
+      error: `No User with this ID`
+    }}else{
+      return{
+        success: true,
+        code: 200,
+        data: List,
+      }
+    }}
    let newItem = {product: product, quantity: quantity}
    let newitemprice = product.price * quantity
    let total = cart.total + newitemprice
@@ -110,9 +143,45 @@ exports.addProduct = async (userId, product,quantity) => {
  }
  };
 
- exports.changeQuantity = async()=>{
+ exports.changeQuantity = async(userId, productId, quantity)=>{
+  let cart = await this.get(userId)
+  let products = cart.data.orderItems
 
- }
+  const exists = products.map(item => {if(item._id === productId){
+    return item
+  }});
+
+  let removedprice = exists.product.price * exists.quantity
+  cart.data.total = cart.data.total - removedprice
+
+  const added = products.map(item => {
+    if(item => item._id === productId){
+      return{ quantity : quantity }
+    }
+    return item
+  }); 
+  
+  let newprice = exists.product.price * quantity
+  let total = cart.total + newprice
+
+  const List = await Cart.findOneAndUpdate({ 
+    userid : userId ,
+    orderItems : added,
+    total: total, 
+    new: true,
+    runValidators: true,
+  });
+  if (!List) {
+    return{
+      success: false,
+      code: 500,
+      error: `No User with this ID`
+  }}else{
+    return{
+      success: true,
+      code: 200,
+      data: List,
+    }}}
 
 
 exports.delete = async (userId)=>{
