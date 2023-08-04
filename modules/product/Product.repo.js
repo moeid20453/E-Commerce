@@ -52,9 +52,8 @@ exports.create = async (form) => {
 exports.getAll = async (filter) => {
   try{
   const allproducts = await Product.find({});
-  let products = [];
-  for (let i = 0; i < products.length; i++) {
-    let midproduct = products[i];
+  for (let i = 0; i < allproducts.length; i++) {
+    let midproduct = allproducts[i];
     const getObjectParams = {
       Bucket: BucketName,
       Key: midproduct.image,
@@ -63,12 +62,12 @@ exports.getAll = async (filter) => {
     const url = await getSignedUrl(s3, getcommand, { expiresIn: 3600 });
     const imageUrl = url;
     midproduct.image = imageUrl;
-    product[i] = midproduct;
+    allproducts[i] = midproduct;
   }
   return{
     success: true,
     code: 200,
-    record: products,
+    data: allproducts,
     
   }
 }catch(err){

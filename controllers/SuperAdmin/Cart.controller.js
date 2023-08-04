@@ -17,6 +17,13 @@ const addToCart = async(req,res)=>{
     res.status(500).json({error:"Unexpected Error"})
   }
 }
+const viewCart = async (req,res)=>{
+  const id = req.params.id
+  let UserCart = await Cart.get(id)
+  if(UserCart.success == true){
+    res.status(UserCart.code).json({Cart : UserCart.data})
+  }
+} 
 
 const removeFromCart = async(req,res)=>{
   try{
@@ -33,13 +40,21 @@ const removeFromCart = async(req,res)=>{
 }
 const deleteUserCart = async(req,res)=>{
   try{
+    let data = await Cart.delete(req.body.id)
+    if(data.success == true){
+      res.status(data.code).json({message: data.message})
+    }else{
+      res.status(data.code).json({error: data.error})
+    }
 
   }catch{
-    
+    res.status(500).json({error:"Unexpected Error"})
   }
 }
 
 module.exports = {
   removeFromCart,
-  addToCart
+  addToCart,
+  deleteUserCart,
+  viewCart
 }

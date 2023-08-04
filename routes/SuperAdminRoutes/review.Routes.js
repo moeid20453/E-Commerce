@@ -4,37 +4,49 @@ const {
   authorizePermissions,
 } = require("../../middleware/authentication");
 const {
-  getAllUsers,
-  getUser,
-  deleteUser,
-  updateUser,
-  createUser,
+  createReview,
+  getSingleReview,
+  updateReview,
+  deleteReview,
+  getSingleProductReviews,
+  getSingleUserReviews,
 } = require("../../controllers/SuperAdmin/Index.Controller");
 
-app.get("/user/:id ", authenticateUser, getUser);
 app.get(
-  "/getAllUsers",
+  "/user/:id ",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  getAllUsers
+  getSingleUserReviews
+);
+app.get(
+  "/product/:id",
+  authenticateUser,
+  authorizePermissions("superAdmin"),
+  getSingleProductReviews
+);
+app.get(
+  "/:id",
+  authenticateUser,
+  authorizePermissions("superAdmin"),
+  getSingleReview
 );
 app.post(
-  "/getAllUsers",
+  "/create",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  deleteUser
+  createReview
 );
-app.post(
-  "/getAllUsers",
+app.put(
+  "/update",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  updateUser
+  updateReview
 );
-app.post(
-  "/getAllUsers",
+app.delete(
+  "/delete/:id",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  createUser
+  deleteReview
 );
 
 module.exports = app;

@@ -9,6 +9,14 @@ const {
   addToCart} = require('./Cart.controller')
 const {getUser} = require('./User.controller')
 const {createOrder} =require("./Order.controller")
+const {
+  createReview,
+  getSingleReview,
+  updateReview,
+  deleteReview,
+  getSingleProductReviews,
+  getSingleUserReviews
+} = require("./Review.controller");
 
 
 module.exports ={
@@ -20,5 +28,11 @@ module.exports ={
   removeFromCart,
   addToCart,
   getUser,
-  createOrder
+  createOrder,
+  createReview,
+  getSingleReview,
+  updateReview,
+  deleteReview,
+  getSingleProductReviews,
+  getSingleUserReviews
 }

@@ -1,84 +1,79 @@
-const Order = require('../order/Order.Model');
-const Product = require('../product/Product.Model');
+const Order = require("../order/Order.Model");
+const Product = require("../product/Product.Model");
 
-
-exports.Create = async (cart, tax , shippingFee) => {
-  const { orderItems ,vendor, tax, shippingFee , user} = cart;
+exports.Create = async (cart, tax, shippingFee) => {
+  const { orderItems, vendor, tax, shippingFee, userId } = cart;
   if (!orderItems || orderItems.length < 1) {
-    return{
+    return {
       success: false,
       code: 400,
-      error: "The cart doesn't have any items"
-    }
+      error: "The cart doesn't have any items",
+    };
   }
   let subtotal = 0;
 
   for (const item of orderItems) {
     subtotal += item.quantity * price;
   }
- 
   const total = tax + shippingFee + subtotal;
-  
-
   const newOrder = new Order({
-    user: user,
+    user: userId,
     tax,
     shippingFee,
     vendor,
     subtotal,
     total,
     items,
-    
-  })
+  });
   await newOrder.save();
-  return{
+  return {
     success: true,
-    record: newOrder,
+    data: newOrder,
     code: 201,
-  }; 
+  };
 };
 
-exports.get = async (filter)=>{
-  const orders = await Order.find({filter});
-  return{
+exports.get = async (filter) => {
+  const orders = await Order.find({ filter });
+  return {
     success: true,
-    record: orders,
-    code:200
-  }
-}
+    data: orders,
+    code: 200,
+  };
+};
 
-exports.update = async(id, status)=>{
-  try{
+exports.update = async (id, status) => {
+  try {
     const order = await Order.findOne({ _id: id });
     if (!order) {
-      return{
+      return {
         success: false,
         code: 500,
-        error: "There is no order with this id"
-      }
+        error: "There is no order with this id",
+      };
     }
     order.status = status;
     await order.save();
-  }catch{
-    return{
+  } catch {
+    return {
       success: false,
       code: 400,
-      error: "Unexpected error"
-    }
+      error: "Unexpected error",
+    };
   }
-}
-exports.delete = async(id)=>{
-  try{
-    await Order.findByIdAndDelete(id)
-    return{
-      success:True,
-      message: "Successfully deleted this order"
-    }
-  }catch{
-    return{
+};
+exports.delete = async (id) => {
+  try {
+    await Order.findByIdAndDelete(id);
+    return {
+      success: True,
+      message: "Successfully deleted this order",
+    };
+  } catch {
+    return {
       success: false,
-      code:200,
-      error: "failed to delete Order"
-    }
+      code: 200,
+      error: "failed to delete Order",
+    };
   }
-}
+};

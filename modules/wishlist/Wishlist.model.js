@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 
 const WishlistSchema = mongoose.Schema({
-  user:{
+  userId:{
     type: String,
     required: true
   },

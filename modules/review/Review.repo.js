@@ -1,4 +1,5 @@
 let Reviews = require("./Review.Model")
+let Prod = require("../product/Product.Model")
 
 exports.isExists = async(userId, productId)=>{
   try{
@@ -30,7 +31,7 @@ exports.get = async (filter)=>{
   try {
     const { userId, productId,reviewId} = filter
     if(userId){
-      const UserReviews = await Reviews.find({ userid: userId });
+      const UserReviews = await Reviews.find({ userId: userId });
       return{
         success: true,   
         items: UserReviews,
@@ -66,11 +67,28 @@ exports.create = async (filter ) =>{
         error: "User already has a review for this product"
       }
     }
-    const newreview = new Reviews({userid : userId , rating: Rating, title: Title, comment: Comment, product: productId});
-      await newreview.save();
+    const newreview = new Reviews({userId : userId , rating: Rating, title: Title, comment: Comment, product: productId});
+    await newreview.save();
+
+    let productreviews = await this.get({productId: productId})
+    let ratings = 0;
+    const numOfReviews = productreviews.length;
+    for (const review of productreviews) {
+      ratings += review.rating;
+    }
+    let averageRating = ratings / numOfReviews
+
+    Prod.findByIdAndUpdate({
+      productId, 
+      $push : {reviews: newreview},
+      averageRating: averageRating,
+      numOfReviews: numOfReviews,
+      new: true,
+      runValidators: true,})
+
       return{
         success: true,
-        record: newreview,
+        data: newreview,
         code: 201,
       };
   }catch(err){
@@ -108,10 +126,10 @@ exports.update = async (id,form) => {
  }
  };
 
-exports.delete = async (filter)=>{
+exports.delete = async (id)=>{
   try {
-    const { ReviewId } = filter;
-    let review = await Reviews.findByIdAndDelete(ReviewId);
+    
+    let review = await Reviews.findByIdAndDelete(id);
     return{
       success: true,   
       data: review,

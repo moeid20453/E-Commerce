@@ -1,8 +1,8 @@
 let User = require("./User.Model")
 let bcrypt = require('bcrypt')
-let fs = require('fs')
-const Order = require('../order/Order.Model')
-const Review = require("../review/Review.Model")
+const Cart = require('../Cart/Cart.repo')
+const Order = require('../order/Order.repo')
+const Review = require('../review/Review.repo')
 
 
 exports.isExist = async (filter)=>{
@@ -11,7 +11,7 @@ exports.isExist = async (filter)=>{
   if (user){
     return {
       success: true,
-      record: user ,
+      data: user ,
       code: 200
     }
   }else{
@@ -33,11 +33,11 @@ exports.isExist = async (filter)=>{
 exports.get = async (filter)=>{
   try {
     
-      let record = await User.findOne(filter).select("-password");
-      if(record){
+      let data = await User.findOne(filter).select("-password");
+      if(data){
         return{
           success: true,
-          record: record,
+          data: data,
           code: 200
         };
       }
@@ -63,7 +63,7 @@ exports.list = async (filter) =>{
     let users = await User.find(filter).select("-password");
     return{
       success : true,
-      record: users,
+      data: users,
       code: 200
     }
   }catch(err){
@@ -84,7 +84,7 @@ exports.create = async (filter) =>{
       await newUser.save();
       return{
         success: true,
-        record: newUser,
+        data: newUser,
         code: 201,
       };
     }else{
@@ -110,7 +110,7 @@ exports.update = async (_id, form) =>{
       if(form.email){
         form.email = form.email.toLowerCase()
         const duplicate = await this.isExist({email: form.email})
-        if(duplicate.success && duplicate.record._id != user.record._id){
+        if(duplicate.success && duplicate.data._id != user.data._id){
           return{
             success: false,
             error: "this email is taken by another user",
@@ -121,7 +121,7 @@ exports.update = async (_id, form) =>{
         let userUpdate = await this.isExist({_id})
         return{
           success: true,
-          record: userUpdate,
+          data: userUpdate,
           code:201
         };
       }
@@ -143,34 +143,27 @@ exports.update = async (_id, form) =>{
   }
 }
 
-
-
-exports.remove = async (_id)=>{
+exports.remove = async (id)=>{
   try{
-    const user = await this.isExist({_id});
+    const user = await this.isExist({id});
     if(user.success){
-      if(user.record.role == "user"){
+      if(user.data.role == "user"){
 
-      await User.findByIdAndDelete({_id})
-      await Cart.deleteMany({"user": _id})
-      await Wishlist.deleteMany({"user": _id})
-      let reviews =  await Review.list({"user": _id})
-
-      await reviews.records.map((review)=>{
-        Review.remove(review._id)
-      })
-
-      await Order.deleteMany({"user": _id})
+      await User.findByIdAndDelete({id})
+      await Cart.delete(id)
+      for(let i =0 ; i < user.data.userReviews.length; i++){
+        Review.delete(user.data.userReviews[i])
+      }
       
       return{
         success: true,
-        record: user,
+        data: user,
         code:200
       }}else{
-        await User.findByIdAndDelete({_id})
+        await User.findByIdAndDelete({id})
         return{
           success: true,
-          record: user,
+          data: user,
           code:200
         }
       }

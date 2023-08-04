@@ -1,5 +1,3 @@
-const Review = require("../../modules/review/Review.repo");
-
 const createReview = async (req, res) => {
   try {
     const { userId, productId, Rating, Title, Comment } = req.body.form;
@@ -26,7 +24,7 @@ const getSingleReview = async (req, res) => {
   try {
     const { id: reviewId } = req.params;
 
-    const review = await Review.get({ reviewId: reviewId });
+    const review = await Review.findOne({ reviewId: reviewId });
 
     if (review.success == false) {
       res.json(review.code).json({ error: review.error });

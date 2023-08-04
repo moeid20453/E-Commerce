@@ -13,14 +13,9 @@ const SingleOrderItemSchema = mongoose.Schema({
 });
 
 const CartSchema = mongoose.Schema({
-  userid: {
+  userId: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
-    required: true,
-  },
-  vendor: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Vendor',
     required: true,
   },
   orderItems: [SingleOrderItemSchema],

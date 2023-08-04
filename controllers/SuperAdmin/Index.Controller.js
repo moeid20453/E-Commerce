@@ -1,30 +1,36 @@
-const  {
+const {
   getAllAdmins,
   getAdminUser,
   deleteAdminUser,
   updateAdminUser,
-  createAdminUser } = require("./Admin.controller")
+  createAdminUser,
+} = require("./Admin.controller");
+const { login, logout } = require("./Auth.controller");
+const { removeFromCart, addToCart } = require("./Cart.controller");
+const { createOrder } = require("./Order.controller");
 const {
-  login,
-  logout}= require("./Auth.controller")
-const { 
-  removeFromCart,
-  addToCart} =require('./Cart.controller')
-const {createOrder }= require('./Order.controller')
+  createReview,
+  getSingleReview,
+  updateReview,
+  deleteReview,
+  getSingleProductReviews,
+  getSingleUserReviews
+} = require("./Review.controller");
 const {
   GetAllProducts,
   GetProduct,
   createProduct,
-  UpdateProdcut} = require("./Product.controller")
+  UpdateProdcut,
+} = require("./Product.controller");
 const {
   getAllUsers,
   getUser,
   deleteUser,
   updateUser,
-  createUser} = require("./User.controller")
+  createUser,
+} = require("./User.controller");
 
-
-  module.exports = {
+module.exports = {
   login,
   logout,
   getAllAdmins,
@@ -43,5 +49,11 @@ const {
   createUser,
   removeFromCart,
   addToCart,
-  createOrder
-  }
+  createOrder,
+  createReview,
+  getSingleReview,
+  updateReview,
+  deleteReview,
+  getSingleProductReviews,
+  getSingleUserReviews
+};

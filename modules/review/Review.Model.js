@@ -33,16 +33,6 @@ const ReviewSchema = mongoose.Schema(
 );
 ReviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
-
-
-ReviewSchema.post('save', async function () {
-  await this.constructor.calculateAverageRating(this.product);
-});
-
-ReviewSchema.post('remove', async function () {
-  await this.constructor.calculateAverageRating(this.product);
-});
-
 let Review = mongoose.model('Review', ReviewSchema);
 
 module.exports = Review;
