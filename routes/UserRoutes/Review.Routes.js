@@ -7,7 +7,7 @@ const {
   deleteReview,
   getSingleProductReviews,
   getSingleUserReviews,
-} = require("../../controllers/SuperAdmin/Index.Controller");
+} = require("../../controllers/Client/Index.controller");
 
 app.get("/user/:id ", authenticateUser, getSingleUserReviews);
 app.get("/product/:id", authenticateUser, getSingleProductReviews);

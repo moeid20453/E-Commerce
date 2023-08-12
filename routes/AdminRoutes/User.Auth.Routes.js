@@ -4,8 +4,7 @@ const {validator} = require('../../validation/Common.validator')
 const {
   login,
   logout,
-} = require("../../controllers/SuperAdmin/Index.Controller");
-
+} = require("../../controllers/Admin/Index.Controller");
 
 app.post("/login", login);
 app.get("/logout", logout);

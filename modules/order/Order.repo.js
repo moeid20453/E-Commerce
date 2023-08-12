@@ -2,7 +2,7 @@ const Order = require("../order/Order.Model");
 const Product = require("../product/Product.Model");
 
 exports.Create = async (cart, tax, shippingFee) => {
-  const { orderItems, vendor, tax, shippingFee, userId } = cart;
+  const { orderItems, userId } = cart;
   if (!orderItems || orderItems.length < 1) {
     return {
       success: false,

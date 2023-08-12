@@ -1,42 +1,50 @@
 const app = require("express").Router();
-const { addUserValidation, confirmPasswordVlidation, updateUserValidation} = require('../../validation/User.Validation')
-const {validator} = require('../../validation/Common.validator')
 const {
   authenticateUser,
   authorizePermissions,
 } = require("../../middleware/authentication");
+
 const {
-  getAllUsers,
-  getUser,
-  deleteUser,
-  updateUser,
-  createUser,
+  getAllAdmins,
+  getAdminUser,
+  deleteAdminUser,
+  updateAdminUser,
+  createAdminUser,
 } = require("../../controllers/SuperAdmin/Index.Controller");
 
-app.get("/user/:id ", authenticateUser, getUser);
 app.get(
-  "/getAllUsers",
+  "/AllAdmins",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  getAllUsers
+  getAllAdmins
 );
+
+app.get(
+  "/:id",
+  authenticateUser,
+  authorizePermissions("superAdmin"),
+  getAdminUser
+);
+
 app.delete(
-  "/delete",
+  "/Delete",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  deleteUser
+  deleteAdminUser
 );
+
 app.put(
   "/Update",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  updateUser
+  updateAdminUser
 );
+
 app.post(
   "/Create",
   authenticateUser,
   authorizePermissions("superAdmin"),
-  createUser
+  createAdminUser
 );
 
 module.exports = app;

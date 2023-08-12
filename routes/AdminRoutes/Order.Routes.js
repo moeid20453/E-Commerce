@@ -1,7 +1,7 @@
 const app = require("express").Router();
 const { authenticateUser } = require("../../middleware/authentication");
-const { getUser } = require("../../controllers/Client/Index.controller");
+const { createOrder } = require("../../controllers/Admin/Index.Controller");
 
-app.get("/:id ", authenticateUser, getUser);
+app.post("/Create-Order", authenticateUser, createOrder);
 
 module.exports = app;
