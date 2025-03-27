@@ -11,11 +11,8 @@ const login = async(req,res)=>{
     }
     let user = await User.comparePassword(email, password)
     if(user.record.success == true){
-      req.session.cookie.expires = new Date(Date.now() + day);
-      req.session.cookie.maxAge = day
-      req.session.user = user;
-      await req.session.save();
-      Util.attachCookiesToResponse(res, user.record._id  );
+      // Create JWT token and attach to cookie
+      Util.attachCookiesToResponse(res, user.record._id);
       res.status(user.code).json(user.record);
     }else{
       res.status(user.code).json(user.record);
@@ -25,14 +22,13 @@ const login = async(req,res)=>{
     res.status(500).json({error:"Unexpected error"})
   }
 }
+
 const logout = async(req,res)=>{
-    req.session.destroy(()=>{
-      res.clearCookie("token",{
-        sameSite:"none",
-        secure:true
-       })
-    })
-    res.status(200).json({ msg: "user logged out!" });
+  res.cookie('token', 'logout', {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+  res.status(200).json({ msg: "user logged out!" });
 }
 
 module.exports = {

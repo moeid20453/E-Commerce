@@ -1,13 +1,8 @@
 const app = require("express").Router();
-const {
-  addUserValidation,
-  confirmPasswordVlidation,
-  updateUserValidation,
-} = require("../../validation/User.Validation");
-const { validator } = require("../../validation/Common.validator");
+
 const {
   authenticateUser,
-  authorizePermissions,
+  isAdmin,
 } = require("../../middleware/authentication");
 const {
   getAllUsers,
@@ -18,24 +13,9 @@ const {
 } = require("../../controllers/Admin/Index.Controller");
 
 app.get("/user/:id ", authenticateUser, getUser);
-app.get(
-  "/getAllUsers",
-  authenticateUser,
-  authorizePermissions("admin"),
-  getAllUsers
-);
-app.delete(
-  "/Delete",
-  authenticateUser,
-  authorizePermissions("admin"),
-  deleteUser
-);
-app.put("/Update", authenticateUser, authorizePermissions("admin"), updateUser);
-app.post(
-  "/Create",
-  authenticateUser,
-  authorizePermissions("admin"),
-  createUser
-);
+app.get("/getAllUsers", authenticateUser, isAdmin, getAllUsers);
+app.delete("/Delete", authenticateUser, isAdmin, deleteUser);
+app.put("/Update", authenticateUser, isAdmin, updateUser);
+app.post("/Create", authenticateUser, isAdmin, createUser);
 
 module.exports = app;

@@ -1,208 +1,364 @@
 let Cart = require("./Cart.model");
 
+// Get cart by user ID
 exports.get = async (id) => {
   try {
-    const UserCart = await Cart.find({ userId: id });
+    const UserCart = await Cart.find({ userId: id })
+      .populate('orderItems.product') // Populate product details
+      .lean(); // Convert to plain JS object for better performance
+    
+    if (!UserCart) {
+      return {
+        success: false,
+        code: 404,
+        message: "Cart not found"
+      };
+    }
+
     return {
       success: true,
       data: UserCart,
     };
   } catch (error) {
+    console.error("Error fetching cart:", error);
     return {
       success: false,
-      message: "Failed to fetch wishlist items",
+      message: "Failed to fetch cart items",
+      error: error.message
     };
   }
 };
 
-exports.create = async (userId, vendorId) => {
+// Create new cart
+exports.create = async (userId) => {
   try {
-    const newList = new Cart({ userId: userId, vendor: vendorId });
-    await newList.save();
+    // Check if user already has a cart
+    const existingCart = await Cart.findOne({ userId });
+    if (existingCart) {
+      return {
+        success: false,
+        code: 400,
+        error: "User already has a cart"
+      };
+    }
+
+    const newCart = new Cart({ userId, orderItems: [], total: 0 });
+    await newCart.save();
+    
     return {
       success: true,
-      data: newList,
+      data: newCart,
       code: 201,
     };
   } catch (err) {
-    console.log("error message", err.message);
+    console.error("Error creating cart:", err);
     return {
       success: false,
       code: 500,
-      error: "Unexpected Error !",
+      error: err.message
     };
   }
 };
 
+// Remove product from cart
 exports.deleteProduct = async (userId, productId) => {
   try {
-    let cart = this.get(userId);
-    cart.product = cart.product.filter(
-      (product) => product._id.toString() !== productId
-    );
-    let removed = cart.product.filter(
-      (product) => product.id.toString() == productId
-    );
-    let newtotal = cart.total - removed.price;
-    const List = await Cart.findOneAndUpdate({
-      userId: userId,
-      product: cart.product,
-      total: newtotal,
-      new: true,
-      runValidators: true,
-    });
-    if (!List) {
+    const cart = await Cart.findOne({ userId });
+    
+    if (!cart) {
       return {
         success: false,
-        code: 500,
-        error: `No User with this ID`,
-      };
-    } else {
-      return {
-        success: true,
-        code: 200,
-        data: List,
+        code: 404,
+        error: "Cart not found"
       };
     }
-  } catch (err) {
-    console.log("Error", err.message);
-    return {
-      success: false,
-      code: 500,
-      error: "Unexpected Error",
-    };
-  }
-};
 
-exports.addProduct = async (userId, product, quantity) => {
-  try {
-    let cart = await this.get(userId);
-    let products = cart.data.orderItems;
+    // Find product in cart
+    const productIndex = cart.orderItems.findIndex(
+      item => item.product.toString() === productId
+    );
 
-    const exists = products.map((item) => item._id === product._id);
-
-    if (exists == true) {
-      const addedToExists = products.map((item) => {
-        if ((item) => item._id === product._id) {
-          let num = item.quantity + quantity;
-          return { quantity: num };
-        }
-        return item;
-      });
-      cart.data.orderItems = addedToExists;
-      let newitemprice = product.price * quantity;
-      let total = cart.total + newitemprice;
-      const List = await Cart.findOneAndUpdate({
-        userId: userId,
-        orderItems: addedToExists,
-        total: total,
-        new: true,
-        runValidators: true,
-      });
-      if (!List) {
-        return {
-          success: false,
-          code: 500,
-          error: `No User with this ID`,
-        };
-      } else {
-        return {
-          success: true,
-          code: 200,
-          data: List,
-        };
-      }
-    }
-    let newItem = { product: product, quantity: quantity };
-    let newitemprice = product.price * quantity;
-    let total = cart.total + newitemprice;
-    cart.total = total;
-    const List = await Cart.findOneAndUpdate({
-      userId: userId,
-      $push: { orderItems: newItem },
-      total: total,
-      new: true,
-      runValidators: true,
-    });
-    if (!List) {
+    if (productIndex === -1) {
       return {
         success: false,
-        code: 500,
-        error: `No User with this ID`,
-      };
-    } else {
-      return {
-        success: true,
-        code: 200,
-        data: List,
+        code: 404,
+        error: "Product not found in cart"
       };
     }
-  } catch (err) {
-    console.log("Error", err.message);
-    return {
-      success: false,
-      code: 500,
-      error: "Unexpected Error",
-    };
-  }
-};
 
-exports.changeQuantity = async (userId, productId, quantity) => {
-  let cart = await this.get(userId);
-  let products = cart.data.orderItems;
+    // Remove product and update total
+    const removedItem = cart.orderItems[productIndex];
+    cart.orderItems.splice(productIndex, 1);
+    cart.total = cart.orderItems.reduce((total, item) => 
+      total + (item.product.price * item.quantity), 0
+    );
 
-  const exists = products.map((item) => {
-    if (item._id === productId) {
-      return item;
-    }
-  });
+    await cart.save();
 
-  let removedprice = exists.product.price * exists.quantity;
-  cart.data.total = cart.data.total - removedprice;
-
-  const added = products.map((item) => {
-    if ((item) => item._id === productId) {
-      return { quantity: quantity };
-    }
-    return item;
-  });
-
-  let newprice = exists.product.price * quantity;
-  let total = cart.total + newprice;
-
-  const List = await Cart.findOneAndUpdate({
-    userId: userId,
-    orderItems: added,
-    total: total,
-    new: true,
-    runValidators: true,
-  });
-  if (!List) {
-    return {
-      success: false,
-      code: 500,
-      error: `No User with this ID`,
-    };
-  } else {
     return {
       success: true,
       code: 200,
-      data: List,
+      data: cart
+    };
+  } catch (err) {
+    console.error("Error removing product:", err);
+    return {
+      success: false,
+      code: 500,
+      error: err.message
     };
   }
 };
 
-exports.delete = async (userId) => {
+// Add product to cart
+exports.addProduct = async (userId, product, quantity) => {
   try {
-    await Cart.findOneAndDelete({ userId: userId });
+    let cart = await Cart.findOne({ userId });
+    
+    if (!cart) {
+      return {
+        success: false,
+        code: 404,
+        error: "Cart not found"
+      };
+    }
+
+    // Check if product already exists
+    const existingItemIndex = cart.orderItems.findIndex(
+      item => item.product.toString() === product._id.toString()
+    );
+
+    if (existingItemIndex > -1) {
+      // Update existing item quantity
+      cart.orderItems[existingItemIndex].quantity += quantity;
+    } else {
+      // Add new item
+      cart.orderItems.push({
+        product: product._id,
+        quantity: quantity
+      });
+    }
+
+    // Recalculate total
+    cart.total = cart.orderItems.reduce((total, item) => 
+      total + (item.product.price * item.quantity), 0
+    );
+
+    await cart.save();
+
     return {
       success: true,
-      message: "Successfully deleted user cart",
+      code: 200,
+      data: cart
     };
-  } catch (error) {
+  } catch (err) {
+    console.error("Error adding product:", err);
     return {
       success: false,
-      error: "Failed to Delete wishlisted item",
+      code: 500,
+      error: err.message
+    };
+  }
+};
+
+// Update product quantity
+exports.changeQuantity = async (userId, productId, quantity) => {
+  try {
+    if (quantity < 1) {
+      return {
+        success: false,
+        code: 400,
+        error: "Quantity must be at least 1"
+      };
+    }
+
+    const cart = await Cart.findOne({ userId });
+    
+    if (!cart) {
+      return {
+        success: false,
+        code: 404,
+        error: "Cart not found"
+      };
+    }
+
+    const itemIndex = cart.orderItems.findIndex(
+      item => item.product.toString() === productId
+    );
+
+    if (itemIndex === -1) {
+      return {
+        success: false,
+        code: 404,
+        error: "Product not found in cart"
+      };
+    }
+
+    // Update quantity
+    cart.orderItems[itemIndex].quantity = quantity;
+
+    // Recalculate total
+    cart.total = cart.orderItems.reduce((total, item) => 
+      total + (item.product.price * item.quantity), 0
+    );
+
+    await cart.save();
+
+    return {
+      success: true,
+      code: 200,
+      data: cart
+    };
+  } catch (err) {
+    console.error("Error updating quantity:", err);
+    return {
+      success: false,
+      code: 500,
+      error: err.message
+    };
+  }
+};
+
+// Delete cart
+exports.delete = async (userId) => {
+  try {
+    const result = await Cart.findOneAndDelete({ userId });
+    
+    if (!result) {
+      return {
+        success: false,
+        code: 404,
+        error: "Cart not found"
+      };
+    }
+
+    return {
+      success: true,
+      code: 200,
+      message: "Successfully deleted user cart"
+    };
+  } catch (error) {
+    console.error("Error deleting cart:", error);
+    return {
+      success: false,
+      code: 500,
+      error: error.message
+    };
+  }
+};
+
+// New functions added:
+
+// Clear all items from cart
+exports.clearCart = async (userId) => {
+  try {
+    const cart = await Cart.findOne({ userId });
+    
+    if (!cart) {
+      return {
+        success: false,
+        code: 404,
+        error: "Cart not found"
+      };
+    }
+
+    cart.orderItems = [];
+    cart.total = 0;
+    await cart.save();
+
+    return {
+      success: true,
+      code: 200,
+      message: "Cart cleared successfully"
+    };
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+    return {
+      success: false,
+      code: 500,
+      error: error.message
+    };
+  }
+};
+
+// Get cart count
+exports.getItemCount = async (userId) => {
+  try {
+    const cart = await Cart.findOne({ userId });
+    
+    if (!cart) {
+      return {
+        success: false,
+        code: 404,
+        error: "Cart not found"
+      };
+    }
+
+    const itemCount = cart.orderItems.reduce((count, item) => 
+      count + item.quantity, 0
+    );
+
+    return {
+      success: true,
+      code: 200,
+      count: itemCount
+    };
+  } catch (error) {
+    console.error("Error getting cart count:", error);
+    return {
+      success: false,
+      code: 500, 
+      error: error.message
+    };
+  }
+};
+
+// Merge carts (useful for guest cart -> user cart after login)
+exports.mergeCarts = async (sourceUserId, targetUserId) => {
+  try {
+    const sourceCart = await Cart.findOne({ userId: sourceUserId });
+    const targetCart = await Cart.findOne({ userId: targetUserId });
+    
+    if (!sourceCart || !targetCart) {
+      return {
+        success: false,
+        code: 404,
+        error: "One or both carts not found"
+      };
+    }
+
+    // Merge items
+    for (const sourceItem of sourceCart.orderItems) {
+      const existingItemIndex = targetCart.orderItems.findIndex(
+        item => item.product.toString() === sourceItem.product.toString()
+      );
+
+      if (existingItemIndex > -1) {
+        targetCart.orderItems[existingItemIndex].quantity += sourceItem.quantity;
+      } else {
+        targetCart.orderItems.push(sourceItem);
+      }
+    }
+
+    // Recalculate total
+    targetCart.total = targetCart.orderItems.reduce((total, item) => 
+      total + (item.product.price * item.quantity), 0
+    );
+
+    await targetCart.save();
+    await Cart.findOneAndDelete({ userId: sourceUserId });
+
+    return {
+      success: true,
+      code: 200,
+      data: targetCart
+    };
+  } catch (error) {
+    console.error("Error merging carts:", error);
+    return {
+      success: false,
+      code: 500,
+      error: error.message
     };
   }
 };

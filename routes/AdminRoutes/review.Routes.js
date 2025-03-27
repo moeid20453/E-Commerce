@@ -1,7 +1,7 @@
 const app = require("express").Router();
 const {
   authenticateUser,
-  authorizePermissions,
+  authorizeRoles,
 } = require("../../middleware/authentication");
 const {
   createReview,
@@ -15,37 +15,37 @@ const {
 app.get(
   "/user/:id ",
   authenticateUser,
-  authorizePermissions("superAdmin"),
+  authorizeRoles("superAdmin"),
   getSingleUserReviews
 );
 app.get(
   "/product/:id",
   authenticateUser,
-  authorizePermissions("superAdmin"),
+  authorizeRoles("superAdmin"),
   getSingleProductReviews
 );
 app.get(
   "/:id",
   authenticateUser,
-  authorizePermissions("superAdmin"),
+  authorizeRoles("superAdmin"),
   getSingleReview
 );
 app.post(
   "/create",
   authenticateUser,
-  authorizePermissions("superAdmin"),
+  authorizeRoles("superAdmin"),
   createReview
 );
 app.put(
   "/update",
   authenticateUser,
-  authorizePermissions("superAdmin"),
+  authorizeRoles("superAdmin"),
   updateReview
 );
 app.delete(
   "/delete/:id",
   authenticateUser,
-  authorizePermissions("superAdmin"),
+  authorizeRoles("superAdmin"),
   deleteReview
 );
 

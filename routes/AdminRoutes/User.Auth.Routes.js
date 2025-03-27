@@ -1,6 +1,4 @@
 const app = require("express").Router();
-const { addUserValidation, confirmPasswordVlidation, updateUserValidation} = require('../../validation/User.Validation')
-const {validator} = require('../../validation/Common.validator')
 const {
   login,
   logout,
